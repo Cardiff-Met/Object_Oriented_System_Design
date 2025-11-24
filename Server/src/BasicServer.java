@@ -1,41 +1,18 @@
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class BasicServer {
 
+    private static final int DEFAULT_PORT = 8080;
     private static final int MAX_CLIENTS = 4;
+    private static final String CSV_FILE_NAME = "co2_readings.csv";
 
-    public static void main(String[] args) {
-        int port = 8080;
+    static void main(String[] args) {
+        int port = DEFAULT_PORT;
 
         if (args.length > 0) {
             port = Integer.parseInt(args[0]);
         }
 
-        System.out.println("Starting server on port " + port + " (max clients: " + MAX_CLIENTS + ")...");
-
-        ExecutorService threadPool = Executors.newFixedThreadPool(MAX_CLIENTS);
-
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("Server is listening on port " + port);
-
-            while (true) {
-                // Block until a client connects
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Accepted connection from " + clientSocket.getRemoteSocketAddress());
-
-                // Handle each client in its own thread
-                threadPool.submit(new ClientHandler(clientSocket));
-            }
-
-        } catch (IOException e) {
-            System.err.println("Server error: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            threadPool.shutdown();
-        }
+        Co2ReadingRepository repository = new Co2ReadingCsvRepository(CSV_FILE_NAME);
+        Co2LoggingServer server = new Co2LoggingServer(port, MAX_CLIENTS, repository);
+        server.start();
     }
 }

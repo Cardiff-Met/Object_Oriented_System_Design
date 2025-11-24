@@ -1,3 +1,5 @@
+package Client.src;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -6,7 +8,7 @@ import java.net.Socket;
 
 public class BasicClient {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         String host = "localhost";
         int port = 8080;
 
@@ -29,17 +31,19 @@ public class BasicClient {
 
             System.out.println("Connected to server.");
 
-            // Read and print the two greeting lines from the server
             String line;
             // readLine() will return null when the server closes the connection
             while ((line = serverIn.readLine()) != null) {
                 System.out.println("SERVER: " + line);
 
-                // For this basic test, after the server asks for input,
-                // we read one line from the user and send it.
-                if (line.contains("Please enter a line of text")) {
+                // If the server line looks like a prompt (ends with ':'),
+                // read one line from the user and send it.
+                if (line.trim().endsWith(":")) {
                     System.out.print("YOU: ");
                     String userLine = userIn.readLine();
+                    if (userLine == null) {
+                        break;
+                    }
                     serverOut.println(userLine);
                 }
             }
