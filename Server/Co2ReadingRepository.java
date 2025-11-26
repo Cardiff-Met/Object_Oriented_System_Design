@@ -1,3 +1,5 @@
+package Server;
+
 import java.io.IOException;
 
 public interface Co2ReadingRepository {

@@ -1,3 +1,5 @@
+package Server;
+
 public class BasicServer {
 
     private static final int DEFAULT_PORT = 8080;
