@@ -11,6 +11,14 @@ public class Co2ReadingCsvRepository implements Co2ReadingRepository {
 
     private final Path filePath;
 
+    /**
+     * Create a new CSV repository backed by the specified file name.
+     * If the file or its parent directories do not exist they will be created.
+     * The CSV file will be initialized with a header line when first created.
+     *
+     * @param fileName path to the CSV file to use for storage
+     * @throws RuntimeException if the repository file or directories cannot be created
+     */
     public Co2ReadingCsvRepository(String fileName) {
         this.filePath = Paths.get(fileName);
 
@@ -33,7 +41,11 @@ public class Co2ReadingCsvRepository implements Co2ReadingRepository {
 
     /**
      * Append a reading to the CSV file. This method is synchronized so that only
-     * one thread writes to the file at a time.
+     * one thread writes to the file at a time. The method will append a single
+     * line representing the reading in CSV format.
+     *
+     * @param reading the CO2 reading to append
+     * @throws IOException if an I/O error occurs while writing
      */
     public synchronized void append(Co2Reading reading) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath.toFile(), true))) {

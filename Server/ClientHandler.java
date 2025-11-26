@@ -16,11 +16,22 @@ public class ClientHandler implements Runnable {
     private final Socket socket;
     private final Co2ReadingRepository repo;
 
+    /**
+     * Create a handler for a connected client socket.
+     *
+     * @param socket the connected client socket
+     * @param repo   repository used to persist CO2 readings
+     */
     public ClientHandler(Socket socket, Co2ReadingRepository repo) {
         this.socket = socket;
         this.repo = repo;
     }
 
+    /**
+     * Entry point for the handler thread. Manages the lifecycle of the
+     * connection, reads input from the client, and ensures resources are
+     * closed when the client disconnects or an error occurs.
+     */
     @Override
     public void run() {
         log(Level.INFO, "New client connected.");
@@ -41,6 +52,15 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Interact with the client to obtain user details and a CO2 reading,
+     * then store the reading via the repository. If the client disconnects
+     * or times out at any point, the method returns early.
+     *
+     * @param in  reader for client input
+     * @param out writer for client output
+     * @throws IOException if an I/O error occurs while communicating with the client
+     */
     private void handleClient(BufferedReader in, PrintWriter out) throws IOException {
         out.println("Welcome to the CO2 logging server.");
 
@@ -68,6 +88,20 @@ public class ClientHandler implements Runnable {
         storeReading(reading, out);
     }
 
+    /**
+     * Prompt the client repeatedly until a valid response is parsed or the
+     * client disconnects/times out. The provided parser maps the raw input
+     * string to an Optional containing the parsed value on success.
+     *
+     * @param in      reader for client input
+     * @param out     writer for client output
+     * @param prompt  prompt message to send to the client
+     * @param parser  function that converts a trimmed input string to Optional<T>
+     * @param errorMsg message to send when parsing fails
+     * @param <T>     type of the parsed value
+     * @return the parsed value, or null if the client disconnected or timed out
+     * @throws IOException if an I/O error occurs while reading from the client
+     */
     private <T> T ask(BufferedReader in, PrintWriter out, String prompt,
                       Function<String, Optional<T>> parser, String errorMsg) throws IOException {
 
@@ -92,6 +126,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Parse a string into a CO2 double value, returning an Optional containing
+     * the value when it is a non-negative finite number.
+     *
+     * @param s input string to parse
+     * @return Optional containing the parsed double, or empty if invalid
+     */
     private static Optional<Double> parseCo2(String s) {
         try {
             double v = Double.parseDouble(s);
@@ -101,6 +142,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Persist the provided reading using the repository and inform the client
+     * of the result.
+     *
+     * @param r   the CO2 reading to store
+     * @param out writer used to send status messages to the client
+     */
     private void storeReading(Co2Reading r, PrintWriter out) {
         try {
             repo.append(r);
@@ -112,6 +160,12 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /**
+     * Log a message together with thread and remote address information.
+     *
+     * @param lvl logging level to use
+     * @param msg message to log
+     */
     private void log(Level lvl, String msg) {
         logger.log(lvl, "[" + Thread.currentThread().getName() + "] " +
                 socket.getRemoteSocketAddress() + " → " + msg);

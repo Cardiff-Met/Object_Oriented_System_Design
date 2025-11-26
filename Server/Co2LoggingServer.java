@@ -17,6 +17,13 @@ public class Co2LoggingServer {
     private final Co2ReadingRepository repository;
     private final ExecutorService threadPool;
 
+    /**
+     * Create a CO2 logging server instance.
+     *
+     * @param port       TCP port to listen on
+     * @param maxClients maximum number of concurrent client handler threads
+     * @param repository repository used to persist readings
+     */
     public Co2LoggingServer(int port, int maxClients, Co2ReadingRepository repository) {
         this.port = port;
         this.maxClients = maxClients;
@@ -24,6 +31,11 @@ public class Co2LoggingServer {
         this.threadPool = Executors.newFixedThreadPool(maxClients);
     }
 
+    /**
+     * Start accepting client connections and dispatch handlers to a fixed
+     * thread pool. This method blocks until the server socket is closed or an
+     * unrecoverable I/O error occurs.
+     */
     public void start() {
         logger.info("Starting CO2 logging server on port " + port + " (max clients: " + maxClients + ")...");
 
@@ -45,6 +57,10 @@ public class Co2LoggingServer {
         }
     }
 
+    /**
+     * Initiate an orderly shutdown of the server's thread pool. Already-
+     * submitted tasks will continue to run.
+     */
     public void shutdown() {
         threadPool.shutdown();
         logger.info("Server shutting down.");

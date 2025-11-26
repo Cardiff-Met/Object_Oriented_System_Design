@@ -6,6 +6,14 @@ public class BasicServer {
     private static final int MAX_CLIENTS = 4;
     private static final String CSV_FILE_NAME = "co2_readings.csv";
 
+    /**
+     * Simple main to launch the CO2 logging server. Optionally accepts a
+     * single argument to override the listening port.
+     *
+     * Usage: BasicServer [port]
+     *
+     * @param args optional command-line arguments
+     */
     static void main(String[] args) {
         int port = DEFAULT_PORT;
 

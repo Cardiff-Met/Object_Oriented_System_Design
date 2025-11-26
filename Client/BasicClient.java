@@ -12,6 +12,14 @@ public class BasicClient {
 
     private static final Logger logger = Logger.getLogger(BasicClient.class.getName());
 
+    /**
+     * Simple interactive client that connects to the CO2 logging server and
+     * proxies prompts between the server and the user's console.
+     *
+     * Usage: BasicClient [host] [port]
+     *
+     * @param args optional host and port arguments
+     */
     static void main(String[] args) {
         String host = "localhost";
         int port = 8080;
@@ -59,10 +67,3 @@ public class BasicClient {
         }
     }
 }
-
-
-
-
-
-
-
