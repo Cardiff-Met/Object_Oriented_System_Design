@@ -1,12 +1,16 @@
-package Client.src;
+package Client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class BasicClient {
+
+    private static final Logger logger = Logger.getLogger(BasicClient.class.getName());
 
     static void main(String[] args) {
         String host = "localhost";
@@ -20,7 +24,7 @@ public class BasicClient {
             port = Integer.parseInt(args[1]);
         }
 
-        System.out.println("Connecting to server " + host + ":" + port + "...");
+        logger.info("Connecting to server " + host + ":" + port + "...");
 
         try (Socket socket = new Socket(host, port);
              BufferedReader serverIn = new BufferedReader(
@@ -29,7 +33,7 @@ public class BasicClient {
              BufferedReader userIn = new BufferedReader(
                      new InputStreamReader(System.in))) {
 
-            System.out.println("Connected to server.");
+            logger.info("Connected to server.");
 
             String line;
             // readLine() will return null when the server closes the connection
@@ -48,11 +52,17 @@ public class BasicClient {
                 }
             }
 
-            System.out.println("Server closed the connection.");
+            logger.info("Server closed the connection.");
 
         } catch (IOException e) {
-            System.err.println("Client error: " + e.getMessage());
-            e.printStackTrace();
+            logger.log(Level.SEVERE, "Client error: " + e.getMessage(), e);
         }
     }
 }
+
+
+
+
+
+
+

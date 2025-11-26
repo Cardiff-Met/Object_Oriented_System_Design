@@ -11,6 +11,22 @@ public class Co2ReadingCsvRepository implements Co2ReadingRepository {
 
     public Co2ReadingCsvRepository(String fileName) {
         this.filePath = Paths.get(fileName);
+
+        // Ensure parent directory exists and create file with header if missing.
+        try {
+            Path parent = filePath.getParent();
+            if (parent != null && !Files.exists(parent)) {
+                Files.createDirectories(parent);
+            }
+
+            if (!Files.exists(filePath)) {
+                try (PrintWriter writer = new PrintWriter(new FileWriter(filePath.toFile(), false))) {
+                    writer.println("timestamp,userId,postcode,co2Ppm");
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to initialize CSV repository file: " + filePath, e);
+        }
     }
 
     /**
@@ -18,12 +34,7 @@ public class Co2ReadingCsvRepository implements Co2ReadingRepository {
      * one thread writes to the file at a time.
      */
     public synchronized void append(Co2Reading reading) throws IOException {
-        boolean fileExists = Files.exists(filePath);
-
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath.toFile(), true))) {
-            if (!fileExists) {
-                writer.println("timestamp,userId,postcode,co2Ppm");
-            }
             writer.println(reading.toCsvLine());
         }
     }
