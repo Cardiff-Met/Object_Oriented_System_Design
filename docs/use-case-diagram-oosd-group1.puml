@@ -1,0 +1,113 @@
+@startuml
+
+package Server {
+  interface Co2ReadingRepository {
+    + append(reading: Co2Reading) : void
+  }
+
+  class Co2Reading {
+    - timestamp: LocalDateTime
+    - userId: String
+    - postcode: String
+    - co2Ppm: double
+    + toCsvLine() : String
+  }
+
+  class Co2ReadingCsvRepository implements Co2ReadingRepository {
+    - filePath: Path
+    + Co2ReadingCsvRepository(fileName: String)
+    + append(reading: Co2Reading) : void
+  }
+
+  class Co2LoggingServer {
+    - port: int
+    - maxClients: int
+    - repository: Co2ReadingRepository
+    - threadPool: ExecutorService
+    + Co2LoggingServer(port: int, maxClients: int, repository: Co2ReadingRepository)
+    + start() : void
+    + shutdown() : void
+  }
+
+  class ClientHandler implements Runnable {
+    - socket: Socket
+    - repo: Co2ReadingRepository
+    + ClientHandler(socket: Socket, repo: Co2ReadingRepository)
+    + run() : void
+  }
+
+  class BasicServer {
+    - DEFAULT_PORT: int
+    - MAX_CLIENTS: int
+    - CSV_FILE_NAME: String
+    + main(args: String[]) : void
+  }
+}
+
+package Client {
+  interface IO {
+    + writeLine(line: String)
+    + write(text: String)
+    + readLine() : String
+  }
+
+  class ConsoleIO implements IO {
+    - in: BufferedReader
+    + writeLine(line: String)
+    + write(text: String)
+    + readLine() : String
+  }
+
+  class ClientConfig {
+    - host: String
+    - port: int
+    + ClientConfig(host: String, port: int)
+    + fromArgs(args: String[]) : ClientConfig
+    + host() : String
+    + port() : int
+  }
+
+  class ServerConnection {
+    - host: String
+    - port: int
+    - socket: Socket
+    - serverIn: BufferedReader
+    - serverOut: PrintWriter
+    + ServerConnection(host: String, port: int)
+    + connect(timeout: Duration) : void
+    + readLine() : String
+    + writeLine(line: String) : void
+    + close() : void
+  }
+
+  class PromptProcessor {
+    - io: IO
+    - connection: ServerConnection
+    + PromptProcessor(io: IO, connection: ServerConnection)
+    + run() : void
+  }
+
+  class BasicClient {
+    + main(args: String[]) : void
+  }
+}
+
+Co2ReadingCsvRepository ..|> Co2ReadingRepository
+Co2LoggingServer o--> Co2ReadingRepository
+ClientHandler --> Co2ReadingRepository
+ClientHandler --> Co2Reading
+
+BasicServer --> Co2ReadingCsvRepository
+BasicServer --> Co2LoggingServer
+
+ConsoleIO ..|> IO
+PromptProcessor --> IO
+PromptProcessor --> ServerConnection
+ServerConnection --> "uses\nSocket/streams" Co2LoggingServer
+
+BasicClient --> ClientConfig
+BasicClient --> ConsoleIO
+BasicClient --> ServerConnection
+BasicClient --> PromptProcessor
+
+@enduml
