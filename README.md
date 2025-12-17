@@ -1,4 +1,4 @@
-# Object_Oriented_System_Desig
+# Object_Oriented_System_Design
 
 # Environmental CO₂ Logging System
 
