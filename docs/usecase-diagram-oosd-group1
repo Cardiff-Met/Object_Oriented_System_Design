@@ -1,0 +1,38 @@
+@startuml
+actor "Field Researcher" as FR
+actor "System Operator" as SO
+actor "Data Analyst" as DA
+
+rectangle "CO2 Logging System" {
+  usecase "Start/stop server" as UC0
+  usecase "Configure server port\nand CSV location" as UC7
+
+  usecase "Connect to server" as UC1
+  usecase "Enter User ID" as UC2
+  usecase "Enter Postcode" as UC3
+  usecase "Enter CO2 ppm" as UC4
+  usecase "Validate inputs" as UC5
+  usecase "Store reading in CSV" as UC6
+
+  usecase "Access stored readings\n(for analysis/reporting)" as UC8
+}
+
+' System operator tasks
+SO --> UC0
+SO --> UC7
+
+' Field researcher tasks
+FR --> UC1
+FR --> UC2
+FR --> UC3
+FR --> UC4
+
+UC2 --> UC5
+UC3 --> UC5
+UC4 --> UC5
+UC5 --> UC6
+
+' Data analyst consuming the CSV the system produces
+DA --> UC8
+
+@enduml
