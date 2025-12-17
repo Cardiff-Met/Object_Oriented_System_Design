@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 public class BasicServer {
 
@@ -14,7 +14,7 @@ public class BasicServer {
      *
      * @param args optional command-line arguments
      */
-    static void main(String[] args) {
+    public static void main(String[] args) {
         int port = DEFAULT_PORT;
 
         if (args.length > 0) {

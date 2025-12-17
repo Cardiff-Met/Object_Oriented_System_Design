@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -47,6 +47,7 @@ public class Co2ReadingCsvRepository implements Co2ReadingRepository {
      * @param reading the CO2 reading to append
      * @throws IOException if an I/O error occurs while writing
      */
+    @Override
     public synchronized void append(Co2Reading reading) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath.toFile(), true))) {
             writer.println(reading.toCsvLine());

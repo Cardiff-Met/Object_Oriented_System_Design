@@ -1,4 +1,4 @@
-package Client;
+package client;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -30,11 +30,9 @@ public class PromptProcessor {
                         break;
                     }
                     userInput = sanitize(userInput);
-                    if (!userInput.isEmpty()) {
-                        connection.writeLine(userInput);
-                    } else {
-                        io.writeLine("Ignored empty input.");
-                    }
+                    // Always send the input (even empty) to let the server's askUntilValid
+                    // handle validation and re-prompting.
+                    connection.writeLine(userInput);
                 }
             }
             io.writeLine("Server closed the connection.");
@@ -59,4 +57,3 @@ public class PromptProcessor {
         try { io.writeLine(msg); } catch (IOException ignored) {}
     }
 }
-
