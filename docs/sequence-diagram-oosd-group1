@@ -1,0 +1,44 @@
+@startuml
+actor FieldResearcher as FR
+participant "BasicClient" as BC
+participant "PromptProcessor" as PP
+participant "ServerConnection" as SC
+participant "Co2LoggingServer" as S
+participant "ClientHandler" as CH
+participant "Co2ReadingCsvRepository" as Repo
+
+FR -> BC: start client (args)
+BC -> ClientConfig: fromArgs(args)
+BC -> SC: new ServerConnection(host, port)
+BC -> SC: connect(60s)
+SC -> S: TCP connect
+S -> CH: new ClientHandler(socket, repo)
+S -> CH: start handler thread
+
+BC -> PP: new PromptProcessor(io, SC)
+BC -> PP: run()
+
+loop prompts
+  CH -> SC: send "Welcome..." / "Enter User ID:" etc.
+  SC -> PP: readLine()
+  PP -> ConsoleIO: writeLine("SERVER: ...")
+  alt line ends with ":"
+    PP -> ConsoleIO: write("YOU: ")
+    FR -> ConsoleIO: type input
+    ConsoleIO -> PP: readLine()
+    PP -> SC: writeLine(userInput)
+  end
+end
+
+CH -> CH: validate inputs
+CH -> Co2Reading: new Co2Reading(...)
+CH -> Repo: append(reading)
+Repo --> Repo: write CSV line
+
+CH -> SC: send "Reading stored. Thank you."
+SC -> PP: readLine()
+PP -> ConsoleIO: writeLine("SERVER: Reading stored. Thank you.")
+CH -> SC: close connection
+SC -> PP: readLine() == null
+PP -> ConsoleIO: writeLine("Server closed the connection.")
+@enduml
