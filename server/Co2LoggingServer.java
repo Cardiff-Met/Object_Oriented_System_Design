@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,11 +37,13 @@ public class Co2LoggingServer {
     private final int port;
     private final int maxClients;
     private final Co2ReadingRepository repository;
+    private volatile ServerSocket serverSocket;
 
     // Worker pool has exactly maxClients threads. They pull sockets from the queue and handle them.
     private final ExecutorService workerPool;
     private final BlockingQueue<QueuedConnection> waitingQueue;
     private final AtomicInteger activeClients;
+    private final AtomicBoolean running;
 
     /**
      * Create a CO2 logging server instance.
@@ -56,6 +59,7 @@ public class Co2LoggingServer {
         this.workerPool = Executors.newFixedThreadPool(maxClients);
         this.waitingQueue = new LinkedBlockingQueue<>();
         this.activeClients = new AtomicInteger(0);
+        this.running = new AtomicBoolean(false);
     }
 
     /**
@@ -68,16 +72,22 @@ public class Co2LoggingServer {
     public void start() {
         logger.info("Starting CO2 logging server on port " + port + " (max clients: " + maxClients + ")...");
 
+        if (!running.compareAndSet(false, true)) {
+            logger.warning("Server already running; start() call ignored.");
+            return;
+        }
+
         // Start worker threads that consume connections from the queue.
         for (int i = 0; i < maxClients; i++) {
             workerPool.submit(this::workerLoop);
         }
 
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
+        try (ServerSocket ss = new ServerSocket(port)) {
+            this.serverSocket = ss;
             logger.info("Server is listening on port " + port);
 
-            while (!workerPool.isShutdown()) {
-                Socket clientSocket = serverSocket.accept();
+            while (running.get() && !workerPool.isShutdown()) {
+                Socket clientSocket = ss.accept();
                 logger.info("Accepted connection from " + clientSocket.getRemoteSocketAddress());
 
                 boolean willWait = activeClients.get() >= maxClients || !waitingQueue.isEmpty();
@@ -95,9 +105,13 @@ public class Co2LoggingServer {
             }
 
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Server error: " + e.getMessage(), e);
+            if (running.get()) {
+                logger.log(Level.SEVERE, "Server error: " + e.getMessage(), e);
+            } else {
+                logger.info("Server socket closed; stopping accept loop.");
+            }
         } finally {
-            shutdown();
+            shutdownInternal();
         }
     }
 
@@ -158,9 +172,19 @@ public class Co2LoggingServer {
     }
 
     /**
-     * Initiate shutdown.
+     * Initiate shutdown from outside.
      */
-    public void shutdown() {
+    public void stop() {
+        if (!running.compareAndSet(true, false)) {
+            return; // already stopped or never started
+        }
+        closeServerSocket();
+        shutdownInternal();
+    }
+
+    private void shutdownInternal() {
+        running.set(false);
+        closeServerSocket();
         workerPool.shutdownNow();
 
         // Best-effort cleanup of any queued sockets.
@@ -177,5 +201,14 @@ public class Co2LoggingServer {
         }
 
         logger.info("Server shutting down.");
+    }
+
+    private void closeServerSocket() {
+        ServerSocket ss = this.serverSocket;
+        if (ss != null && !ss.isClosed()) {
+            try {
+                ss.close();
+            } catch (IOException ignored) {}
+        }
     }
 }

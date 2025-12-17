@@ -5,8 +5,6 @@ public final class EmployeeFactory {
     private EmployeeFactory() {}
 
     public static Employee fromUserId(String userId) {
-        // Keep protocol unchanged: client still sends a single userId string.
-        // We infer a subtype purely for OO modelling / logging.
         if (userId == null) {
             return new Researcher("unknown");
         }
@@ -24,7 +22,6 @@ public final class EmployeeFactory {
             return new Researcher(trimmed);
         }
 
-        // Default
         return new Researcher(trimmed);
     }
 }
