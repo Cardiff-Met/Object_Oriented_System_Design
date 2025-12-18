@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

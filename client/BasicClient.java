@@ -1,4 +1,4 @@
-package Client;
+package client;
 
 import java.time.Duration;
 import java.util.logging.Level;
@@ -15,7 +15,7 @@ public class BasicClient {
      *
      * @param args optional host and port arguments
      */
-     static void main(String[] args) {
+    public static void main(String[] args) {
         ClientConfig config;
         try {
             config = ClientConfig.fromArgs(args);

@@ -1,4 +1,4 @@
-package Server;
+package server;
 
 public class BasicServer {
 
@@ -14,7 +14,7 @@ public class BasicServer {
      *
      * @param args optional command-line arguments
      */
-    static void main(String[] args) {
+    public static void main(String[] args) {
         int port = DEFAULT_PORT;
 
         if (args.length > 0) {
@@ -23,6 +23,10 @@ public class BasicServer {
 
         Co2ReadingRepository repository = new Co2ReadingCsvRepository(CSV_FILE_NAME);
         Co2LoggingServer server = new Co2LoggingServer(port, MAX_CLIENTS, repository);
+
+        // Stop gracefully on JVM shutdown (e.g., Ctrl+C).
+        Runtime.getRuntime().addShutdownHook(new Thread(server::stop));
+
         server.start();
     }
 }
